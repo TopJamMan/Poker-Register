@@ -1,29 +1,42 @@
-# home_page.py
 import tkinter as tk
 from registration_form import open_registration_form
-from table import open_table_window
+from admin_functions import AdminFunctions
+from table import TableManagement  # Assuming table.py has a TableManagement class
 
-def main():
-    root = tk.Tk()
-    root.title("Home Panel")
-    root.geometry("400x300")
+class HomePage:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Home Page")
+        self.master.geometry("400x300")
 
-    # Center the main window on the screen
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x = (screen_width - 400) // 2
-    y = (screen_height - 300) // 2
-    root.geometry(f"+{x}+{y}")
+        # Welcome label
+        self.welcome_label = tk.Label(master, text="Welcome to the Game Environment", font=("Arial", 14))
+        self.welcome_label.pack(pady=20)
 
-    # Add a button to open the registration form
-    open_form_button = tk.Button(root, text="Open Registration Form", font=("Arial", 14), command=open_registration_form)
-    open_form_button.pack(pady=20)
+        # Button to open registration form
+        self.registration_button = tk.Button(master, text="Register", command=self.open_registration_form)
+        self.registration_button.pack(pady=10)
 
-    # Add a button to open the table layout
-    open_table_button = tk.Button(root, text="Open Table Layout", font=("Arial", 14), command=open_table_window)
-    open_table_button.pack(pady=20)
+        # Button to open admin functions
+        self.admin_button = tk.Button(master, text="Admin Functions", command=self.open_admin_functions)
+        self.admin_button.pack(pady=10)
 
-    root.mainloop()
+        # Button to open table management
+        self.table_button = tk.Button(master, text="Table Management", command=self.open_table_management)
+        self.table_button.pack(pady=10)
+
+    def open_registration_form(self):
+        open_registration_form()
+
+    def open_admin_functions(self):
+        admin_window = tk.Toplevel(self.master)
+        AdminFunctions(admin_window)
+
+    def open_table_management(self):
+        table_window = tk.Toplevel(self.master)
+        TableManagement(table_window)
 
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    home_app = HomePage(root)
+    root.mainloop()
