@@ -1,0 +1,43 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+
+# PyCharm specific files
+.idea/
+*.iml
+
+# Test and coverage
+.coverage
+*.cover
+.tox/
+.nox/
+*.log
+nosetests.xml
+coverage.xml
+*.coveragerc
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Pytest
+.cache/
+pytest_cache/
+
+# Others
+*.DS_Store
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
