@@ -41,3 +41,5 @@ pytest_cache/
 *.pyc
 *.pyo
 *.pyd
+
+*.env
