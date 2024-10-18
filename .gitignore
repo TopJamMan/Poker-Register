@@ -12,6 +12,7 @@ venv.bak/
 *.egg-info/
 dist/
 build/
+.venv/.env
 
 # PyCharm specific files
 .idea/
@@ -41,5 +42,3 @@ pytest_cache/
 *.pyc
 *.pyo
 *.pyd
-
-*.env
