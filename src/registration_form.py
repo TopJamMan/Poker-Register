@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
 
+from src.models.player import Player
+
+
 def open_registration_form(connection):
     registration_window = tk.Toplevel()
     registration_window.title("Registration Form")
@@ -40,16 +43,13 @@ def open_registration_form(connection):
         last_name = entry_last_name.get()
         if first_name and last_name:
             try:
-                # Insert data into the Player table
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                        INSERT INTO Player (firstName, lastName, membershipStatus, timesPlayed, points, totalSpent)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        """,
-                        (first_name, last_name, 'Active', 0, 0, 0.00)
-                    )
-                connection.commit()
+                # Create a Player instance
+                new_player = Player(first_name=first_name, last_name=last_name, membership_status='Active',
+                                    times_played=0, points=0, total_spent=0.00)
+
+                # Save the player to the database using the Player class method
+                new_player.save_to_db(connection)
+
                 messagebox.showinfo("Registration Successful", f"Welcome, {first_name} {last_name}!")
                 registration_window.destroy()  # Close the registration window
             except Exception as e:
