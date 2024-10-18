@@ -28,7 +28,7 @@ class HomePage:
         self.table_button.pack(pady=10)
 
     def open_registration_form(self):
-        open_registration_form()
+        open_registration_form(connection)
 
     def open_admin_functions(self):
         admin_window = tk.Toplevel(self.master)
