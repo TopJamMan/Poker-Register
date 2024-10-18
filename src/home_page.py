@@ -1,7 +1,9 @@
+import os
 import tkinter as tk
 from registration_form import open_registration_form
 from admin_functions import AdminFunctions
-from table import TableManagement  # Assuming table.py has a TableManagement class
+from database import Database
+from table import TableManagement  # Assuming table.py has a
 
 class HomePage:
     def __init__(self, master):
@@ -38,5 +40,13 @@ class HomePage:
 
 if __name__ == "__main__":
     root = tk.Tk()
+    # Create a database connection
+    db = Database()
+    connection = db.get_connection()  # Get the active connection
     home_app = HomePage(root)
+
+    # Start the main loop
     root.mainloop()
+
+    # Close the connection when the app is closed
+    db.close_connection()
