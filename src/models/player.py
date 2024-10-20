@@ -2,13 +2,14 @@ import csv
 import os
 
 class Player:
-    def __init__(self, first_name='', last_name='', student_no=None, total_won=0, total_spent=0):
+    def __init__(self, first_name='', last_name='', student_no=None,points=0, total_won=0, total_spent=0):
         self.first_name = first_name
         self.last_name = last_name
         self.student_no = student_no
         self.membership_status = False
         self.total_won = total_won
         self.total_spent = total_spent
+        self.points = points
 
     def check_membership_status(self):
         """Check the player's membership status against members.csv."""
@@ -34,14 +35,14 @@ class Player:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO player (firstName, lastName, membershipStatus, timesPlayed, studentNumber, totalWon, totalSpent)
-                    VALUES (%s, %s, %s, 1, %s, %s, %s)  -- Start timesPlayed at 1 for a new member
+                    INSERT INTO player (firstName, lastName, membershipStatus, timesPlayed, studentNumber, totalWon, totalSpent, points)
+                    VALUES (%s, %s, %s, 1, %s, %s, %s,%s)  -- Start timesPlayed at 1 for a new member
                     ON CONFLICT (studentNumber)  -- Specify the column to check for conflicts
                     DO UPDATE SET 
                         timesPlayed = player.timesPlayed + 1  -- Increment timesPlayed only
                     """,
                     (self.first_name, self.last_name, self.membership_status, self.student_no, self.total_won,
-                     self.total_spent)
+                     self.total_spent, self.points)
                 )
             # Commit the transaction
             connection.commit()
@@ -94,10 +95,9 @@ class Player:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT firstName, lastName, points, timesPlayed, totalWon, totalSpent
+                    SELECT studentnumber, firstName, lastName, points, timesPlayed, totalWon, totalSpent
                     FROM player
-                    WHERE membershipStatus = TRUE and totalSpent > 0
-                    ORDER BY points DESC
+                    ORDER BY lastName DESC
                     """
                 )
 

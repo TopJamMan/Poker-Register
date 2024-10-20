@@ -3,7 +3,6 @@ from tkinter import messagebox
 
 from src.models.player import Player
 
-
 def open_registration_form(connection):
     registration_window = tk.Toplevel()
     registration_window.title("Registration Form")
