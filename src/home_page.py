@@ -29,7 +29,7 @@ class HomePage:
         self.admin_code = os.getenv("ADMIN_CODE")  # Get the admin code from the environment
 
         # Welcome label
-        self.welcome_label = tk.Label(master, text="Welcome to the Game Environment", font=("Arial", 14))
+        self.welcome_label = tk.Label(master, text="Welcome to the Poker Register", font=("Arial", 14))
         self.welcome_label.pack(pady=20)
 
         # Button to open registration form
@@ -43,6 +43,9 @@ class HomePage:
         # Button to open table management
         self.table_button = tk.Button(master, text="Tables View", command=self.open_table_management)
         self.table_button.pack(pady=10)
+
+        self.welcome_label = tk.Label(master, text="Licenced for RHUL Poker Society by \n Tom Gyorffy and Jasper Mansfield", font=("Arial", 11))
+        self.welcome_label.pack(pady=20)
 
     def open_registration_form(self):
         open_registration_form(self.connection)
