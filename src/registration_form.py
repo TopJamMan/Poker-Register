@@ -2,10 +2,15 @@ import tkinter as tk
 from tkinter import messagebox
 
 from src.models.player import Player
+from src.models.playerTable import PlayerTable
+from src.models.week import Week
+
 
 def open_registration_form(connection):
     registration_window = tk.Toplevel()
     registration_window.title("Registration Form")
+
+    current_week_no = Week.get_current_week_number(connection)
 
     # Configure window
     screen_width = registration_window.winfo_screenwidth()
@@ -77,6 +82,15 @@ def open_registration_form(connection):
                 new_player.save_to_db(connection)
 
                 new_player.increment_total_spent(connection,table_type)
+
+                player_seat = PlayerTable(new_player.student_no, table_type)
+
+                player_seat.seat_allocation(connection,current_week_no, table_type)
+
+                #Implement seat allocation
+
+                #creating a random seat which is not allocated yet
+                #free and paid table as well
 
                 messagebox.showinfo("Registration Successful", f"Welcome, {first_name} {last_name}!")
                 registration_window.destroy()  # Close the registration window

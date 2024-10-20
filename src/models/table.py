@@ -100,3 +100,44 @@ class Table:
         except Exception as e:
             print(f"Error fetching table details: {e}")
             return []  # Return an empty list on error
+
+    @staticmethod
+    def get_tables_by_type(connection, week_no, buy_in):
+        """
+        Get a list of free or paid tables based on the buy-in amount.
+
+        :param connection: The active database connection.
+        :param week_no: The week number to filter the tables.
+        :param is_free: If True, get free tables (buy_in = 0). If False, get paid tables (buy_in > 0).
+        :return: A list of Table instances matching the specified type.
+        """
+        try:
+            with connection.cursor() as cursor:
+                # Determine the condition for the query based on whether the tables are free or paid
+                cursor.execute("""
+                    SELECT tableId, weekno, seatCount, pot, buyIn, tableNumber
+                    FROM "table"
+                    WHERE weekno = %s AND buyIn = %s
+                """, (week_no, buy_in))
+
+                results = cursor.fetchall()  # Fetch all results
+
+            tables = []  # Initialize an empty list to hold the Table instances
+            if results:
+                # Convert each row to a Table instance
+                for row in results:
+                    table = Table(
+                        table_id=row[0],
+                        week_no=row[1],
+                        seat_count=row[2],
+                        pot=row[3],
+                        buy_in=row[4],
+                        table_number=row[5]
+                    )
+                    tables.append(table)  # Add the Table instance to the list
+
+            return tables  # Return the list of Table instances
+        except Exception as e:
+            print(f"Error fetching tables by type: {e}")
+            return []  # Return an empty
+
