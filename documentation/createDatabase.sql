@@ -1,9 +1,9 @@
 -- Create the Player table
 CREATE TABLE Player (
-    playerId SERIAL PRIMARY KEY,
+    stundertNumber VARCHAR(9) PRIMARY KEY ,
     firstName VARCHAR(50) NOT NULL,
     lastName VARCHAR(50) NOT NULL,
-    membershipStatus VARCHAR(20),
+    membershipStatus BOOLEAN,
     timesPlayed INTEGER,
     points INTEGER,
     totalSpent DECIMAL(10, 2)
@@ -11,15 +11,15 @@ CREATE TABLE Player (
 
 -- Create the Week table
 CREATE TABLE Week (
-    weekId SERIAL PRIMARY KEY,
+    weekNo INTEGER PRIMARY KEY,
     tableCount INTEGER,
-    weekNo INTEGER
+
 );
 
 -- Create the Table table
-CREATE TABLE "Table" (
+CREATE TABLE game_table (
     tableId SERIAL PRIMARY KEY,
-    weekId INTEGER REFERENCES Week(weekId),
+    weekNo INTEGER REFERENCES Week(weekNo),
     seatCount INTEGER,
     pot DECIMAL(10, 2),
     buyIn DECIMAL(10, 2),
@@ -28,10 +28,10 @@ CREATE TABLE "Table" (
 
 -- Create the PlayerTable table to establish many-to-many relationships
 CREATE TABLE PlayerTable (
-    playerId INTEGER REFERENCES Player(playerId),
-    tableId INTEGER REFERENCES "Table"(tableId),
+    studentNumber INTEGER REFERENCES Player(studentNumber),
+    tableId INTEGER REFERENCES Table(tableId),
     placement INTEGER,
     seat INTEGER,
     totalBuyIn DECIMAL(10, 2),
-    PRIMARY KEY (playerId, tableId)
+    PRIMARY KEY (studentNumber, tableId)
 );

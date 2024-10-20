@@ -1,15 +1,15 @@
 class Week:
-    def __init__(self, week_id=None, table_count=0, week_no=0):
+    def __init__(self, week_no, fiver_table_count, free_table_count):
         """
         Initialize a Week object with optional parameters.
 
-        :param week_id: The unique identifier for the week (Primary Key).
         :param table_count: The number of tables associated with this week.
         :param week_no: The number of the week.
         """
-        self.week_id = week_id
-        self.table_count = table_count
+
         self.week_no = week_no
+        self.fiver_table_count = fiver_table_count
+        self.free_table_count = free_table_count
 
     def save_to_db(self, connection):
         """
@@ -19,61 +19,37 @@ class Week:
         """
         try:
             with connection.cursor() as cursor:
-                if self.week_id is None:
                     # Insert new week if week_id is not set
                     cursor.execute(
                         """
-                        INSERT INTO Week (tableCount, weekNo)
-                        VALUES (%s, %s) RETURNING weekId
+                        INSERT INTO Week (weekNo,freetablecount, fivertablecount)
+                        VALUES (%s, %s, %s) 
                         """,
-                        (self.table_count, self.week_no)
-                    )
-                    self.week_id = cursor.fetchone()[0]  # Get the generated week ID
-                else:
-                    # Update existing week if week_id is set
-                    cursor.execute(
-                        """
-                        UPDATE Week
-                        SET tableCount = %s, weekNo = %s
-                        WHERE weekId = %s
-                        """,
-                        (self.table_count, self.week_no, self.week_id)
+                        (self.week_no,self.free_table_count, self.fiver_table_count, )
                     )
             connection.commit()
         except Exception as e:
             connection.rollback()
             raise e
 
-    def delete_from_db(self, connection):
+    @staticmethod
+    def get_current_week_number(connection):
         """
-        Delete the Week instance from the database.
+        Fetch the current week number from the Week table.
 
         :param connection: The active database connection.
+        :return: Current week number or None if not found.
         """
         try:
             with connection.cursor() as cursor:
-                cursor.execute("DELETE FROM Week WHERE weekId = %s", (self.week_id,))
-            connection.commit()
-        except Exception as e:
-            connection.rollback()
-            raise e
-
-    @classmethod
-    def load_from_db(cls, connection, week_id):
-        """
-        Load a Week instance from the database.
-
-        :param connection: The active database connection.
-        :param week_id: The ID of the week to load.
-        :return: A Week object if found, otherwise None.
-        """
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT weekId, tableCount, weekNo FROM Week WHERE weekId = %s", (week_id,))
-                row = cursor.fetchone()
-                if row:
-                    return cls(week_id=row[0], table_count=row[1], week_no=row[2])
+                cursor.execute("""
+                        SELECT weekNo FROM "week" ORDER BY weekNo DESC LIMIT 1
+                    """)
+                result = cursor.fetchone()
+                if result:
+                    return result[0]  # Return the current week number
                 else:
-                    return None
+                    return None  # Return None if no week found
         except Exception as e:
-            raise e
+            print(f"Error fetching current week number: {e}")
+            return None  # Return None on error

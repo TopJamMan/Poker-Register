@@ -1,87 +1,109 @@
-class Player:
-    def __init__(self, player_id=None, first_name='', last_name='', membership_status='Active', times_played=0, points=0, total_spent=0.00):
-        """
-        Initialize a Player object with optional parameters.
+import csv
+import os
 
-        :param player_id: The unique identifier for the player (Primary Key).
-        :param first_name: The first name of the player.
-        :param last_name: The last name of the player.
-        :param membership_status: The membership status of the player (default is 'Active').
-        :param times_played: The number of times the player has played.
-        :param points: The total points accumulated by the player.
-        :param total_spent: The total amount spent by the player.
-        """
-        self.player_id = player_id
+class Player:
+    def __init__(self, first_name='', last_name='', student_no=None, total_won=0, total_spent=0):
         self.first_name = first_name
         self.last_name = last_name
-        self.membership_status = membership_status
-        self.times_played = times_played
-        self.points = points
+        self.student_no = student_no
+        self.membership_status = False
+        self.total_won = total_won
         self.total_spent = total_spent
 
+    def check_membership_status(self):
+        """Check the player's membership status against members.csv."""
+        csv_file_path = os.path.join("src/resources", "members.csv")
+
+        try:
+            with open(csv_file_path, mode="r") as file:
+                csv_reader = csv.reader(file)
+                for row in csv_reader:
+                    if self.student_no == row[-1].strip():
+                        self.membership_status = True
+                        break
+        except FileNotFoundError:
+            raise Exception("The members.csv file was not found.")
+        except Exception as e:
+            raise e
+
     def save_to_db(self, connection):
-        """
-        Save the Player instance to the database.
+        """Save the player's information to the database."""
+        self.check_membership_status()
 
-        :param connection: The active database connection.
-        """
         try:
             with connection.cursor() as cursor:
-                if self.player_id is None:
-                    # Insert new player if player_id is not set
-                    cursor.execute(
-                        """
-                        INSERT INTO Player (firstName, lastName, membershipStatus, timesPlayed, points, totalSpent)
-                        VALUES (%s, %s, %s, %s, %s, %s) RETURNING playerId
-                        """,
-                        (self.first_name, self.last_name, self.membership_status, self.times_played, self.points, self.total_spent)
-                    )
-                    self.player_id = cursor.fetchone()[0]  # Get the generated player ID
-                else:
-                    # Update existing player if player_id is set
-                    cursor.execute(
-                        """
-                        UPDATE Player
-                        SET firstName = %s, lastName = %s, membershipStatus = %s, timesPlayed = %s, points = %s, totalSpent = %s
-                        WHERE playerId = %s
-                        """,
-                        (self.first_name, self.last_name, self.membership_status, self.times_played, self.points, self.total_spent, self.player_id)
-                    )
+                cursor.execute(
+                    """
+                    INSERT INTO player (firstName, lastName, membershipStatus, timesPlayed, studentNumber, totalWon, totalSpent)
+                    VALUES (%s, %s, %s, 1, %s, %s, %s)  -- Start timesPlayed at 1 for a new member
+                    ON CONFLICT (studentNumber)  -- Specify the column to check for conflicts
+                    DO UPDATE SET 
+                        timesPlayed = player.timesPlayed + 1  -- Increment timesPlayed only
+                    """,
+                    (self.first_name, self.last_name, self.membership_status, self.student_no, self.total_won,
+                     self.total_spent)
+                )
+            # Commit the transaction
             connection.commit()
         except Exception as e:
-            connection.rollback()
+            connection.rollback()  # Roll back the transaction in case of an error
             raise e
 
-    def delete_from_db(self, connection):
-        """
-        Delete the Player instance from the database.
-
-        :param connection: The active database connection.
-        """
+    def increment_total_spent(self, connection, amount):
+        """Increment the player's total spent amount in the database."""
         try:
             with connection.cursor() as cursor:
-                cursor.execute("DELETE FROM Player WHERE playerId = %s", (self.player_id,))
-            connection.commit()
+                cursor.execute(
+                    """
+                    UPDATE player
+                    SET totalSpent = COALESCE(totalSpent, 0) + %s
+                    WHERE studentNumber = %s
+                    """,
+                    (amount, self.student_no)  # Ensure both are integers or correct types
+                )
+            connection.commit()  # Commit the transaction
         except Exception as e:
-            connection.rollback()
+            connection.rollback()  # Roll back the transaction in case of an error
             raise e
 
-    @classmethod
-    def load_from_db(cls, connection, player_id):
-        """
-        Load a Player instance from the database.
-
-        :param connection: The active database connection.
-        :param player_id: The ID of the player to load.
-        :return: A Player object if found, otherwise None.
-        """
+    @staticmethod
+    def get_league_standing(connection):
+        """Retrieve league standings for players."""
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT playerId, firstName, lastName, membershipStatus, timesPlayed, points, totalSpent FROM Player WHERE playerId = %s", (player_id,))
-                row = cursor.fetchone()
-                if row:
-                    return cls(player_id=row[0], first_name=row[1], last_name=row[2], membership_status=row[3], times_played=row[4], points=row[5], total_spent=row[6])
-                else:
-                    return None
+                cursor.execute(
+                    """
+                    SELECT firstName, lastName, points, timesPlayed, totalWon, totalSpent
+                    FROM player
+                    WHERE membershipStatus = TRUE and totalSpent > 0
+                    ORDER BY points DESC
+                    """
+                )
+
+                standings = cursor.fetchall()  # Fetch all the results
+                connection.commit()  # Commit the transaction
+                return standings  # Return the fetched standings
         except Exception as e:
-            raise e
+            connection.rollback()  # Roll back the transaction in case of an error
+            raise e  # Optionally log the error or handle it as needed
+
+    @staticmethod
+    def get_all_members(connection):
+        """Retrieve league standings for players."""
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT firstName, lastName, points, timesPlayed, totalWon, totalSpent
+                    FROM player
+                    WHERE membershipStatus = TRUE and totalSpent > 0
+                    ORDER BY points DESC
+                    """
+                )
+
+                standings = cursor.fetchall()  # Fetch all the results
+                connection.commit()  # Commit the transaction
+                return standings  # Return the fetched standings
+        except Exception as e:
+            connection.rollback()  # Roll back the transaction in case of an error
+            raise e  # Optionally log the error or handle it as needed

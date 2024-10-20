@@ -12,7 +12,9 @@ venv.bak/
 *.egg-info/
 dist/
 build/
+.venv
 .env
+*.csv
 
 # PyCharm specific files
 .idea/

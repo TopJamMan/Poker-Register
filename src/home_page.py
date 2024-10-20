@@ -3,11 +3,12 @@ import tkinter as tk
 from registration_form import open_registration_form
 from admin_functions import AdminFunctions
 from database import Database
-from table_ui import TableManagement  # Assuming table_ui.py has a
+from table_ui import TableManagement  # Assuming table_ui.py has a TableManagement class
 
 class HomePage:
-    def __init__(self, master):
+    def __init__(self, master, connection):
         self.master = master
+        self.connection = connection  # Store the connection in the class
         self.master.title("Home Page")
         self.master.geometry("400x300")
 
@@ -28,22 +29,22 @@ class HomePage:
         self.table_button.pack(pady=10)
 
     def open_registration_form(self):
-        open_registration_form(connection)
+        open_registration_form(self.connection)
 
     def open_admin_functions(self):
         admin_window = tk.Toplevel(self.master)
-        AdminFunctions(admin_window)
+        AdminFunctions(admin_window, self.connection)  # Pass the connection
 
     def open_table_management(self):
         table_window = tk.Toplevel(self.master)
-        TableManagement(table_window)
+        TableManagement(table_window, self.connection)
 
 if __name__ == "__main__":
     root = tk.Tk()
     # Create a database connection
     db = Database()
     connection = db.get_connection()  # Get the active connection
-    home_app = HomePage(root)
+    home_app = HomePage(root, connection)  # Pass the connection to HomePage
 
     # Start the main loop
     root.mainloop()

@@ -1,85 +1,102 @@
 class Table:
-    def __init__(self, table_id=None, week_id=None, seat_count=0, pot=0.00, buy_in=0.00, table_number=0):
+    def __init__(self, table_id=None, week_no=None, pot = 0, seat_count=0, buy_in=0.0, table_number=0):
         """
-        Initialize a Table object with optional parameters.
+        Initialize a Table instance.
 
-        :param table_id: The unique identifier for the table (Primary Key).
-        :param week_id: The foreign key referencing the Week table.
-        :param seat_count: The number of seats available at the table.
-        :param pot: The current pot amount at the table.
+        :param table_id: The table ID (optional).
+        :param week_no: The week number the table belongs to.
+        :param seat_count: The number of seats at the table.
         :param buy_in: The buy-in amount for the table.
-        :param table_number: The number assigned to the table.
+        :param table_number: The identifier for the table.
         """
         self.table_id = table_id
-        self.week_id = week_id
+        self.week_no = week_no
         self.seat_count = seat_count
-        self.pot = pot
+        self.pot = pot  # Default pot value
         self.buy_in = buy_in
         self.table_number = table_number
 
-    def save_to_db(self, connection):
+
+    def create_table(self, connection):
         """
         Save the Table instance to the database.
 
         :param connection: The active database connection.
+        :return: The ID of the created table.
         """
         try:
             with connection.cursor() as cursor:
-                if self.table_id is None:
-                    # Insert new table if table_id is not set
-                    cursor.execute(
-                        """
-                        INSERT INTO Table (weekId, seatCount, pot, buyIn, tableNumber)
-                        VALUES (%s, %s, %s, %s, %s) RETURNING tableId
-                        """,
-                        (self.week_id, self.seat_count, self.pot, self.buy_in, self.table_number)
-                    )
-                    self.table_id = cursor.fetchone()[0]  # Get the generated table ID
-                else:
-                    # Update existing table if table_id is set
-                    cursor.execute(
-                        """
-                        UPDATE Table
-                        SET weekId = %s, seatCount = %s, pot = %s, buyIn = %s, tableNumber = %s
-                        WHERE tableId = %s
-                        """,
-                        (self.week_id, self.seat_count, self.pot, self.buy_in, self.table_number, self.table_id)
-                    )
-            connection.commit()
+                cursor.execute(
+                    """
+                    INSERT INTO "table" (weekno, seatCount, pot, buyIn, tableNumber)
+                    VALUES (%s, %s, %s, %s, %s) RETURNING tableId
+                    """,
+                    (self.week_no, self.seat_count, self.pot, self.buy_in, self.table_number)
+                )
+                self.table_id = cursor.fetchone()[0]  # Fetch the generated table ID
+                connection.commit()
+                return self.table_id  # Return the created table ID
         except Exception as e:
             connection.rollback()
+            print(f"Error creating table: {e}")
             raise e
 
-    def delete_from_db(self, connection):
+    def edit_table(self, connection):
         """
-        Delete the Table instance from the database.
+        Edit the Table instance in the database based on table_id.
 
         :param connection: The active database connection.
         """
         try:
             with connection.cursor() as cursor:
-                cursor.execute("DELETE FROM Table WHERE tableId = %s", (self.table_id,))
+                cursor.execute(
+                    """
+                    UPDATE "table"
+                    SET pot = %s, buyIn = %s, seatCount = %s, tableNumber = %s
+                    WHERE tableId = %s
+                    """,
+                    (self.pot, self.buy_in, self.seat_count, self.table_number, self.table_id)
+                )
             connection.commit()
         except Exception as e:
             connection.rollback()
             raise e
 
-    @classmethod
-    def load_from_db(cls, connection, table_id):
+    @staticmethod
+    def get_table_details(connection, week_no):
         """
-        Load a Table instance from the database.
+        Get table details as a list of Table instances from the database.
 
         :param connection: The active database connection.
-        :param table_id: The ID of the table to load.
-        :return: A Table object if found, otherwise None.
+        :param week_no: The week number to filter the tables.
+        :return: A list of Table instances.
         """
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT tableId, weekId, seatCount, pot, buyIn, tableNumber FROM Table WHERE tableId = %s", (table_id,))
-                row = cursor.fetchone()
-                if row:
-                    return cls(table_id=row[0], week_id=row[1], seat_count=row[2], pot=row[3], buy_in=row[4], table_number=row[5])
-                else:
-                    return None
+                cursor.execute("""
+                    SELECT tableId, weekno, seatCount, pot, buyIn, tableNumber 
+                    FROM "table" 
+                    WHERE weekno = %s
+                """, (week_no,))
+                results = cursor.fetchall()  # Fetch all results
+
+            tables = []  # Initialize an empty list to hold the Table instances
+            if results:
+                # Convert each row to a Table instance
+                for row in results:
+                    table = Table(
+                        table_id=row[0],
+                        week_no=row[1],
+                        seat_count=row[2],
+                        pot = row[3],
+                        buy_in=row[4],
+                        table_number=row[5]
+                    )
+                    tables.append(table)  # Add the Table instance to the list
+
+                return tables  # Return the list of Table instances
+            else:
+                return []  # Return an empty list if no results
         except Exception as e:
-            raise e
+            print(f"Error fetching table details: {e}")
+            return []  # Return an empty list on error
