@@ -1,12 +1,15 @@
 import csv
 import os
 
+from sympy import false
+
+
 class Player:
-    def __init__(self, first_name='', last_name='', student_no=None,points=0, total_won=0, total_spent=0):
+    def __init__(self, first_name='', last_name='', student_no=None,points=0, total_won=0, total_spent=0, membership_status = False):
         self.first_name = first_name
         self.last_name = last_name
         self.student_no = student_no
-        self.membership_status = False
+        self.membership_status = membership_status
         self.total_won = total_won
         self.total_spent = total_spent
         self.points = points
@@ -67,6 +70,52 @@ class Player:
             connection.rollback()  # Roll back the transaction in case of an error
             raise e
 
+    def edit_member(self, connection):
+        """Update the player's details in the database."""
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE player
+                    SET firstName = %s,
+                        lastName = %s,
+                        points = %s,
+                        totalWon = %s,
+                        totalSpent = %s,
+                        membershipStatus = %s
+                    WHERE studentNumber = %s
+                    """,
+                    (
+                        self.first_name,
+                        self.last_name,
+                        self.points,
+                        self.total_won,
+                        self.total_spent,
+                        self.membership_status,
+                        self.student_no
+                    )  # Ensure that the types of these fields match the database columns
+                )
+            connection.commit()  # Commit the transaction
+        except Exception as e:
+            connection.rollback()  # Roll back the transaction in case of an error
+            raise e
+
+    def delete_member(self, connection):
+        """Delete the player from the database."""
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    DELETE FROM player
+                    WHERE studentNumber = %s
+                    """,
+                    (self.student_no,)  # Use the player's student_no to identify the record
+                )
+            connection.commit()  # Commit the transaction
+        except Exception as e:
+            connection.rollback()  # Roll back the transaction in case of an error
+            raise e
+
     @staticmethod
     def get_league_standing(connection):
         """Retrieve league standings for players."""
@@ -95,7 +144,7 @@ class Player:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT studentnumber, firstName, lastName, points, timesPlayed, totalWon, totalSpent
+                    SELECT studentnumber, firstName, lastName, points, timesPlayed, totalWon, totalSpent, membershipstatus
                     FROM player
                     ORDER BY lastName DESC
                     """

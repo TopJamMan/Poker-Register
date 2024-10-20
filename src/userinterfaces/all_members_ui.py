@@ -1,9 +1,8 @@
 from src.models.player import Player
 import tkinter as tk
 
-def show_all_members(connection):
-    all_members = Player.get_all_members(connection)
 
+def show_all_members(connection):
     all_members_window = tk.Toplevel()
     all_members_window.title("All Members")
 
@@ -11,82 +10,137 @@ def show_all_members(connection):
     table_frame = tk.Frame(all_members_window)
     table_frame.pack(padx=10, pady=10)
 
-    # Create header labels
-    headers = ["Student Number", "First Name", "Last Name", "Points", "Times Played", "Total Won", "Total Spent",
-               "Actions"]
-    for col, header in enumerate(headers):
-        header_label = tk.Label(table_frame, text=header, font=("Arial", 12, "bold"))
-        header_label.grid(row=0, column=col, padx=10, pady=5)
+    # Function to populate the table with member data
+    def populate_table():
+        # Clear previous table content
+        for widget in table_frame.winfo_children():
+            widget.destroy()
+
+        # Create header labels
+        headers = ["Student Number", "First Name", "Last Name", "Points", "Times Played", "Total Won", "Total Spent",
+                   "Membership Status", "Actions"]
+        for col, header in enumerate(headers):
+            header_label = tk.Label(table_frame, text=header, font=("Arial", 12, "bold"))
+            header_label.grid(row=0, column=col, padx=10, pady=5)
+
+        # Retrieve all members from the database
+        all_members = Player.get_all_members(connection)
+
+        # Populate the league table with standings
+        for row, standing in enumerate(all_members, start=1):
+            # Extract the player's details
+            student_no, first_name, last_name, points, times_played, total_won, total_spent, membership_status = standing
+
+            # Create labels for each column
+            student_no_label = tk.Label(table_frame, text=student_no)
+            student_no_label.grid(row=row, column=0, padx=10, pady=5)
+
+            first_name_label = tk.Label(table_frame, text=first_name)
+            first_name_label.grid(row=row, column=1, padx=10, pady=5)
+
+            last_name_label = tk.Label(table_frame, text=last_name)
+            last_name_label.grid(row=row, column=2, padx=10, pady=5)
+
+            points_label = tk.Label(table_frame, text=points)
+            points_label.grid(row=row, column=3, padx=10, pady=5)
+
+            times_played_label = tk.Label(table_frame, text=times_played)
+            times_played_label.grid(row=row, column=4, padx=10, pady=5)
+
+            total_won_label = tk.Label(table_frame, text=f"£{total_won:.2f}")
+            total_won_label.grid(row=row, column=5, padx=10, pady=5)
+
+            total_spent_label = tk.Label(table_frame, text=f"£{total_spent:.2f}")
+            total_spent_label.grid(row=row, column=6, padx=10, pady=5)
+
+            membership_var = tk.BooleanVar(value=bool(membership_status))  # Convert 1 or 0 to True or False
+
+            # Display the membership status as "True" or "False"
+            membership_status_label = tk.Label(table_frame,
+                                               text=str(membership_var.get()))  # Show boolean value as text
+            membership_status_label.grid(row=row, column=7, padx=10, pady=5)
+
+            # Add "Edit" and "Delete" buttons
+            edit_button = tk.Button(table_frame, text="Edit", command=lambda p=standing, r=row: edit_member(p, r))
+            edit_button.grid(row=row, column=8, padx=5, pady=5)
+
+            delete_button = tk.Button(table_frame, text="Delete",
+                                      command=lambda p=Player(student_no=student_no): delete_member(p))
+            delete_button.grid(row=row, column=9, padx=5, pady=5)
 
     # Function to delete a member
-    def delete_member(member_id):
+    def delete_member(player):
         # Perform deletion from the database here
-        Player.delete_member(connection=self.connection, member_id=member_id)
-        # Refresh the list to reflect the changes
-        all_members_window.destroy()
-        self.show_all_members()
+        player.delete_member(connection)
+        # Refresh the table to reflect the changes
+        populate_table()
 
-    # Function to edit a member's details
-    def edit_member(member):
-        # Open a new window or a popup to edit the member's details
-        edit_window = tk.Toplevel(all_members_window)
-        edit_window.title("Edit Member")
+    def edit_member(member, row):
+        # Extract the player's details
+        student_no, first_name, last_name, points, times_played, total_won, total_spent, membershipstatus = member
 
-        # Create input fields for each member detail
-        first_name_entry = tk.Entry(edit_window)
-        first_name_entry.insert(0, member[0])  # Assuming first_name is the first value in the tuple
-        first_name_entry.grid(row=0, column=1, padx=5, pady=5)
+        # Clear existing widgets in the row
+        for widget in table_frame.grid_slaves(row=row):
+            widget.destroy()
 
-        last_name_entry = tk.Entry(edit_window)
-        last_name_entry.insert(0, member[1])
-        last_name_entry.grid(row=1, column=1, padx=5, pady=5)
+        # Create entry fields for editing
+        student_no_entry = tk.Entry(table_frame)
+        student_no_entry.insert(0, student_no)
+        student_no_entry.grid(row=row, column=0, padx=10, pady=5)
 
-        # Add other fields as needed...
+        first_name_entry = tk.Entry(table_frame)
+        first_name_entry.insert(0, first_name)
+        first_name_entry.grid(row=row, column=1, padx=10, pady=5)
 
-        # Update function
+        last_name_entry = tk.Entry(table_frame)
+        last_name_entry.insert(0, last_name)
+        last_name_entry.grid(row=row, column=2, padx=10, pady=5)
+
+        points_entry = tk.Entry(table_frame)
+        points_entry.insert(0, points)
+        points_entry.grid(row=row, column=3, padx=10, pady=5)
+
+        times_played_entry = tk.Entry(table_frame)
+        times_played_entry.insert(0, times_played)
+        times_played_entry.grid(row=row, column=4, padx=10, pady=5)
+
+        total_won_entry = tk.Entry(table_frame)
+        total_won_entry.insert(0, total_won)
+        total_won_entry.grid(row=row, column=5, padx=10, pady=5)
+
+        total_spent_entry = tk.Entry(table_frame)
+        total_spent_entry.insert(0, total_spent)
+        total_spent_entry.grid(row=row, column=6, padx=10, pady=5)
+
+        # Entry field for Membership Status
+        membership_status_entry = tk.Entry(table_frame)
+        membership_status_entry.insert(0, "True" if membershipstatus else "False")  # Set to "True" or "False"
+        membership_status_entry.grid(row=row, column=7, padx=10, pady=5)
+
         def update_member():
-            # Implement the update in the database
-            Player.update_member(connection=self.connection, member_id=member[6],
-                                 first_name=first_name_entry.get(), last_name=last_name_entry.get())
-            # Refresh the list
-            edit_window.destroy()
-            all_members_window.destroy()
-            self.show_all_members()
+            # Update the Player object with new values
+            updated_player = Player(
+                student_no=student_no_entry.get(),
+                first_name=first_name_entry.get(),
+                last_name=last_name_entry.get(),
+                points=int(points_entry.get()),
+                total_won=float(total_won_entry.get()),
+                total_spent=float(total_spent_entry.get()),
+                membership_status=membership_status_entry.get()  # Add membership status
+            )
+
+            updated_player.edit_member(connection)
+
+            # Refresh the table to show updated values
+            populate_table()
 
         # Update button
-        update_button = tk.Button(edit_window, text="Update", command=update_member)
-        update_button.grid(row=2, column=0, columnspan=2, pady=10)
+        update_button = tk.Button(table_frame, text="Save", command=update_member)
+        update_button.grid(row=row, column=8, padx=5, pady=5)  # Adjusted column index for the button
 
-    # Populate the league table with standings
-    for row, standing in enumerate(all_members, start=1):
-        # Extract the player's details
-        first_name, last_name, points, times_played, total_won, total_spent, member_id = standing
 
-        # Create labels for each column
-        player_name_label = tk.Label(table_frame, text=first_name)
-        player_name_label.grid(row=row, column=0, padx=10, pady=5)
-
-        last_name_label = tk.Label(table_frame, text=last_name)
-        last_name_label.grid(row=row, column=1, padx=10, pady=5)
-
-        points_label = tk.Label(table_frame, text=points)
-        points_label.grid(row=row, column=2, padx=10, pady=5)
-
-        times_played_label = tk.Label(table_frame, text=times_played)
-        times_played_label.grid(row=row, column=3, padx=10, pady=5)
-
-        total_won_label = tk.Label(table_frame, text=f"£{total_won:.2f}")
-        total_won_label.grid(row=row, column=4, padx=10, pady=5)
-
-        total_spent_label = tk.Label(table_frame, text=f"£{total_spent:.2f}")
-        total_spent_label.grid(row=row, column=5, padx=10, pady=5)
-
-        # Add "Edit" and "Delete" buttons
-        edit_button = tk.Button(table_frame, text="Edit", command=lambda m=standing: edit_member(m))
-        edit_button.grid(row=row, column=6, padx=5, pady=5)
-
-        delete_button = tk.Button(table_frame, text="Delete", command=lambda m_id=member_id: delete_member(m_id))
-        delete_button.grid(row=row, column=7, padx=5, pady=5)
+    # Initially populate the table
+    populate_table()
 
     # Optionally, you can add a close button
     close_button = tk.Button(all_members_window, text="Close", command=all_members_window.destroy)
