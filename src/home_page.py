@@ -1,9 +1,8 @@
-import os
 import tkinter as tk
 from registration_form import open_registration_form
 from admin_functions import AdminFunctions
 from database import Database
-from table_ui import TableManagement  # Assuming table_ui.py has a TableManagement class
+from src.userinterfaces.table_ui import TableManagement  # Assuming table_ui.py has a TableManagement class
 
 class HomePage:
     def __init__(self, master, connection):
