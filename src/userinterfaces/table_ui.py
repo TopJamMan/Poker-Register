@@ -51,7 +51,7 @@ class TableManagement:
         table_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
         # Center frame to hold the table number
-        center_frame = tk.Frame(table_frame, width=100, height=100, bg="brown")
+        center_frame = tk.Frame(table_frame, width=1500, height=1500, bg="brown")
         center_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         # Table header label (table number)
@@ -65,7 +65,7 @@ class TableManagement:
         positions = [
             (0.4, 0.1), (0.6, 0.1),  # Top (left and right)
             (0.9, 0.3), (0.9, 0.7),  # Right (top and bottom)
-            (0.6, 0.9), (0.4, 0.9),  # Bottom (right and left)
+            (0.6, 0.7), (0.4, 0.7),  # Bottom (right and left)
             (0.1, 0.7), (0.1, 0.3),  # Left (bottom and top)
         ]
 

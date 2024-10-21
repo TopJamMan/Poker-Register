@@ -77,6 +77,7 @@ class Table:
                     SELECT tableId, weekno, seatCount, pot, buyIn, tableNumber 
                     FROM "table" 
                     WHERE weekno = %s
+                    ORDER BY tableNumber ASC
                 """, (week_no,))
                 results = cursor.fetchall()  # Fetch all results
 

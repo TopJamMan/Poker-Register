@@ -70,7 +70,8 @@ def open_registration_form(connection, table_management):
         else:
             table_type = 0
 
-        if first_name and last_name and student_no and not (button1.cget("state") == tk.DISABLED and button2.cget("state") == tk.DISABLED):
+        if first_name and last_name and student_no and not (
+                button1.cget("state") == tk.DISABLED and button2.cget("state") == tk.DISABLED):
             try:
                 # Create a Player instance
                 new_player = Player(first_name=first_name, last_name=last_name, student_no=student_no)
@@ -91,8 +92,15 @@ def open_registration_form(connection, table_management):
                 if table_management:
                     table_management.update_table_ui()
 
-                # Close the registration window
-                registration_window.destroy()
+                # Clear the input fields
+                entry_first_name.delete(0, tk.END)
+                entry_last_name.delete(0, tk.END)
+                entry_student_no.delete(0, tk.END)
+
+                # Reset the button states
+                button1.config(state=tk.NORMAL)
+                button2.config(state=tk.NORMAL)
+
             except Exception as e:
                 messagebox.showerror("Database Error", f"Failed to save to the database: {e}")
                 connection.rollback()
