@@ -141,3 +141,38 @@ class Table:
             print(f"Error fetching tables by type: {e}")
             return []  # Return an empty
 
+    @staticmethod
+    def get_table_by_id(connection, table_id):
+        """
+        Get a Table instance from the database based on the table ID.
+
+        :param connection: The active database connection.
+        :param table_id: The ID of the table to retrieve.
+        :return: A Table instance if found, otherwise None.
+        """
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                        SELECT tableId, weekno, seatCount, pot, buyIn, tableNumber
+                        FROM "table"
+                        WHERE tableId = %s
+                    """, (table_id,))
+
+                result = cursor.fetchone()  # Fetch the result
+
+            if result:
+                # Create a Table instance from the result
+                table = Table(
+                    table_id=result[0],
+                    week_no=result[1],
+                    seat_count=result[2],
+                    pot=result[3],
+                    buy_in=result[4],
+                    table_number=result[5]
+                )
+                return table  # Return the Table instance
+            else:
+                return None  # Return None if no table is found
+        except Exception as e:
+            print(f"Error fetching table by ID: {e}")
+            return None  # Return None on error

@@ -1,5 +1,7 @@
 from msilib.schema import tables
 import random
+from tkinter import messagebox
+
 from src.models.table import Table
 
 
@@ -23,12 +25,12 @@ class PlayerTable:
 
 
     def seat_allocation(self, connection, week_no, buy_in):
-        print(self.student_no, self.table_id, self.placement, self.seat,self.total_buy_in)
         #we know player id, and total buy in
         tables = Table.get_tables_by_type(connection, week_no, buy_in)
         ##getting all the tables based if the player is free or paid
 
         not_found_free_table = True
+        current_attempt_table = 0
         random_number = None
         taken_seats = []# Initialize the variable outside the loop
 
@@ -38,24 +40,51 @@ class PlayerTable:
             taken_seats = count_seats_allocated(connection, tables[random_number].table_id)
 
             if len(taken_seats) < tables[random_number].seat_count:
+                self.table_id = tables[random_number].table_id
                 not_found_free_table = False
 
-        self.table_id = random_number
+            current_attempt_table = current_attempt_table + 1
 
-        print(taken_seats)
+            if current_attempt_table == len(tables):
+                messagebox.showerror("Couldn't find any table with free seats!")
+                break
 
-        not_found_free_seat = True
-        while not_found_free_seat:
-            random_number = random.randint(1, tables[random_number].seat_count)
 
-            if random_number != taken_seats[random_number].seat:
-                not_found_free_table = False
+        taken_seat_numbers = []
+        for seat in taken_seats:
+            taken_seat_numbers.append(seat.seat)
 
-        #megszamolni hany darab seat van mar allokalva minden asztalhoz minden tablehoz a Player tableben
+        not_found_random_seat = True
+        while not_found_random_seat:
+            random_seat_number = random.randint(1, Table.get_table_by_id(connection, self.table_id).seat_count)
 
-        #selecting a seat that is not taken based on table id and free seats
+            if random_seat_number not in taken_seat_numbers:
+                not_found_random_seat = False
+                self.seat = random_seat_number
 
-        #saving it to the database with the details
+        self.save_seat(connection)
+
+    def save_seat(self, connection):
+        """
+        Save the PlayerTable instance to the database.
+
+        :param connection: The active database connection.
+        """
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO playerseat (studentnumber, tableId, seat, totalBuyIn)
+                    VALUES (%s, %s, %s, %s)
+                    """,
+                    (self.student_no, self.table_id, self.seat, self.total_buy_in)
+                )
+            connection.commit()  # Commit the transaction
+        except Exception as e:
+            connection.rollback()  # Rollback in case of error
+            print(f"Error saving player table: {e}")
+            raise e
+
 
 def count_seats_allocated(connection, table_id):
     """
@@ -69,7 +98,7 @@ def count_seats_allocated(connection, table_id):
         with connection.cursor() as cursor:
             cursor.execute("""
                     SELECT studentnumber, totalBuyIn, tableId, placement, seat
-                    FROM "playerseat"
+                    FROM playerseat
                     WHERE tableId = %s
                 """, (table_id,))
 
