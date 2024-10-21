@@ -70,29 +70,31 @@ class Player:
             connection.rollback()  # Roll back the transaction in case of an error
             raise e
 
-    def edit_member(self, connection):
+    def edit_member(self, connection, old_student_no):
         """Update the player's details in the database."""
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
                     UPDATE player
-                    SET firstName = %s,
+                    SET studentnumber = %s,
+                        firstName = %s,
                         lastName = %s,
                         points = %s,
                         totalWon = %s,
                         totalSpent = %s,
                         membershipStatus = %s
-                    WHERE studentNumber = %s
+                    WHERE studentnumber = %s
                     """,
                     (
+                        self.student_no,
                         self.first_name,
                         self.last_name,
                         self.points,
                         self.total_won,
                         self.total_spent,
                         self.membership_status,
-                        self.student_no
+                        old_student_no
                     )  # Ensure that the types of these fields match the database columns
                 )
             connection.commit()  # Commit the transaction

@@ -129,7 +129,7 @@ def show_all_members(connection):
                 membership_status=membership_status_entry.get()  # Add membership status
             )
 
-            updated_player.edit_member(connection)
+            updated_player.edit_member(connection, student_no)
 
             # Refresh the table to show updated values
             populate_table()

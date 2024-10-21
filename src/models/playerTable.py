@@ -54,15 +54,20 @@ class PlayerTable:
         for seat in taken_seats:
             taken_seat_numbers.append(seat.seat)
 
+        chosen_table = Table.get_table_by_id(connection, self.table_id)
+
         not_found_random_seat = True
         while not_found_random_seat:
-            random_seat_number = random.randint(1, Table.get_table_by_id(connection, self.table_id).seat_count)
+            random_seat_number = random.randint(1, chosen_table.seat_count)
 
             if random_seat_number not in taken_seat_numbers:
                 not_found_random_seat = False
                 self.seat = random_seat_number
 
         self.save_seat(connection)
+
+        chosen_table.increment_pot(connection)
+
 
     def save_seat(self, connection):
         """

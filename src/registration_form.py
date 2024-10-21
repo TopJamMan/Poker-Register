@@ -87,10 +87,6 @@ def open_registration_form(connection):
 
                 player_seat.seat_allocation(connection,current_week_no, table_type)
 
-                #Implement seat allocation
-
-                #creating a random seat which is not allocated yet
-                #free and paid table as well
 
                 messagebox.showinfo("Registration Successful", f"Welcome, {first_name} {last_name}!")
                 registration_window.destroy()  # Close the registration window

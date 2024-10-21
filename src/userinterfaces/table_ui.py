@@ -6,6 +6,7 @@ from src.models.week import Week
 class TableManagement:
     def __init__(self, master, connection):
         self.master = master
+        self.connection = connection  # Store the database connection for later use
         self.master.title("Table Layout")
 
         # Set the window size
@@ -19,18 +20,27 @@ class TableManagement:
         self.master.geometry(f"+{x}+{y}")
 
         # Create a frame to hold the tables and seats
-        main_frame = tk.Frame(self.master)
-        main_frame.pack(expand=True, fill=tk.BOTH, padx=20, pady=20)
+        self.main_frame = tk.Frame(self.master)
+        self.main_frame.pack(expand=True, fill=tk.BOTH, padx=20, pady=20)
+
+        # Initialize the UI with current table data
+        self.update_table_ui()
+
+    def update_table_ui(self):
+        """Update the table UI by fetching the latest table details from the database."""
+        # Clear the existing content in the main frame
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
 
         # Get the current week number
-        current_week_no = Week.get_current_week_number(connection)
+        current_week_no = Week.get_current_week_number(self.connection)
 
         # Get table details from the database
-        table_list_detailed = Table.get_table_details(connection, current_week_no)
+        table_list_detailed = Table.get_table_details(self.connection, current_week_no)
 
         # Create a frame for each table
         for table in table_list_detailed:
-            self.create_table_frame(main_frame, table)
+            self.create_table_frame(self.main_frame, table)
 
     def create_table_frame(self, parent_frame, table):
         """

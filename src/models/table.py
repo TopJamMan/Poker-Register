@@ -176,3 +176,19 @@ class Table:
         except Exception as e:
             print(f"Error fetching table by ID: {e}")
             return None  # Return None on error
+
+
+    def increment_pot(self, connection):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE "table"
+                    SET pot = %s
+                    WHERE tableId = %s
+                    """, (self.pot + self.buy_in, self.table_id)
+                )
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            raise e
