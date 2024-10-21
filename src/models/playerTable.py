@@ -43,11 +43,11 @@ class PlayerTable:
                 self.table_id = tables[random_number].table_id
                 not_found_free_table = False
 
-            current_attempt_table = current_attempt_table + 1
-
             if current_attempt_table == len(tables):
                 messagebox.showerror("Couldn't find any table with free seats!")
                 break
+
+            current_attempt_table = current_attempt_table + 1
 
 
         taken_seat_numbers = []
@@ -89,6 +89,38 @@ class PlayerTable:
             connection.rollback()  # Rollback in case of error
             print(f"Error saving player table: {e}")
             raise e
+
+    @staticmethod
+    def get_taken_seats(connection, table_id):
+        """
+        Fetch all the taken seats for the specified table.
+
+        :param connection: The active database connection.
+        :param table_id: The ID of the table.
+        :return: A list of dictionaries, each containing the seat information.
+        """
+        taken_seats = []
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT seat, studentnumber, tableid, totalbuyin, placement
+                    FROM PlayerSeat WHERE tableId = %s
+                """, (table_id,))
+                results = cursor.fetchall()
+                # Convert each row into a dictionary
+                taken_seats = [
+                    {
+                        'seat': row[0],
+                        'student_number': row[1],
+                        'table_id': row[2],
+                        'total_buy_in': row[3],
+                        'placement': row[4]
+                    }
+                    for row in results
+                ]
+        except Exception as e:
+            print(f"Error fetching taken seats: {e}")
+        return taken_seats
 
 
 def count_seats_allocated(connection, table_id):

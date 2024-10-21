@@ -48,7 +48,8 @@ class HomePage:
         self.welcome_label.pack(pady=20)
 
     def open_registration_form(self):
-        open_registration_form(self.connection)
+        # Pass self.table_management to the registration form if it exists
+        open_registration_form(self.connection, self.table_management if hasattr(self, 'table_management') else None)
 
     def open_admin_code_dialog(self):
         dialog = AdminCodeDialog(self.master)  # Create the custom dialog
@@ -65,7 +66,8 @@ class HomePage:
 
     def open_table_management(self):
         table_window = tk.Toplevel(self.master)
-        TableManagement(table_window, self.connection)
+        self.table_management = TableManagement(table_window, self.connection)
+
 
 if __name__ == "__main__":
     root = tk.Tk()

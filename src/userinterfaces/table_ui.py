@@ -1,5 +1,8 @@
 import math
 import tkinter as tk
+
+from src.models.player import Player
+from src.models.playerTable import PlayerTable
 from src.models.table import Table
 from src.models.week import Week
 
@@ -43,12 +46,6 @@ class TableManagement:
             self.create_table_frame(self.main_frame, table)
 
     def create_table_frame(self, parent_frame, table):
-        """
-        Create a frame to display the details of a single table with seats arranged in a rectangular pattern.
-
-        :param parent_frame: The parent frame to add this table frame to.
-        :param table: The Table instance containing the table's details.
-        """
         # Create a frame for this table
         table_frame = tk.Frame(parent_frame, bd=2, relief=tk.SOLID)
         table_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
@@ -61,10 +58,10 @@ class TableManagement:
         header_label = tk.Label(center_frame, text=f"Table {table.table_number}", bg="brown", fg="white")
         header_label.pack(expand=True)
 
-        # Maximum of 8 seats in total (2 seats per side)
-        num_seats = table.seat_count
+        # Get occupied seats from the PlayerSeat table
+        taken_seats = PlayerTable.get_taken_seats(self.connection, table.table_id)
 
-        # Positions for 2 seats on each side
+        # Positions for seats
         positions = [
             (0.4, 0.1), (0.6, 0.1),  # Top (left and right)
             (0.9, 0.3), (0.9, 0.7),  # Right (top and bottom)
@@ -73,18 +70,33 @@ class TableManagement:
         ]
 
         # Create seat labels based on the calculated positions
-        for i in range(num_seats):
-            x_pos, y_pos = positions[i]  # Get the (x, y) position for this seat
-            seat_label = tk.Label(table_frame, text=f"Seat {i + 1}", bg="lightgreen", width=10, height=2)
+        for i in range(table.seat_count):
+            x_pos, y_pos = positions[i]
+
+            # Check if the seat is taken
+            seat_info = next((seat for seat in taken_seats if seat['seat'] == i + 1), None)
+            seat_color = "red" if seat_info else "lightgreen"
+
+            # Create a label for the seat
+            seat_label = tk.Label(table_frame, text=f"Seat {i + 1}", bg=seat_color, width=10, height=2)
             seat_label.place(relx=x_pos, rely=y_pos, anchor=tk.CENTER)
 
-        # Pot and buy-in labels (optional, if you want to display them)
-        display_pot = table.pot
-        if display_pot >= 50:
-            display_pot -= 5
+            # If the seat is taken, display player information below the seat
+            if seat_info:
+                # Fetch player information using the student number
+                player = Player.get_player_info(self.connection, seat_info['student_number'])
+                if player:
+                    # Use 0.00 as default if total_buy_in is None
+                    total_buy_in = seat_info['total_buy_in'] if seat_info['total_buy_in'] is not None else 0.00
+                    info_text = f"Taken by: {player.first_name} {player.last_name}\nBuy-in: ${total_buy_in:.2f}"
+                    info_label = tk.Label(table_frame, text=info_text, bg="red", fg="white", wraplength=100)
+                    # Position the info label slightly lower to avoid overlap with the seat label
+                    info_label.place(relx=x_pos, rely=y_pos + 0.15, anchor=tk.CENTER)
 
-        pot_label = tk.Label(table_frame, text=f"Pot: ${display_pot:.2f}", bg="lightgreen")
+        # Pot and buy-in labels
+        pot_label = tk.Label(table_frame, text=f"Pot: ${table.pot:.2f}", bg="lightgreen")
         pot_label.pack(side=tk.BOTTOM, pady=5)
 
         buy_in_label = tk.Label(table_frame, text=f"Buy-in: ${table.buy_in:.2f}", bg="lightblue")
         buy_in_label.pack(side=tk.BOTTOM, pady=5)
+

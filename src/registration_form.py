@@ -1,12 +1,11 @@
-import tkinter as tk
 from tkinter import messagebox
-
+import tkinter as tk
 from src.models.player import Player
 from src.models.playerTable import PlayerTable
 from src.models.week import Week
 
 
-def open_registration_form(connection):
+def open_registration_form(connection, table_management):
     registration_window = tk.Toplevel()
     registration_window.title("Registration Form")
 
@@ -66,12 +65,10 @@ def open_registration_form(connection):
         last_name = entry_last_name.get()
         student_no = entry_student_no.get()
 
-
         if button1.cget("state") == tk.NORMAL:
             table_type = 5
         else:
             table_type = 0
-
 
         if first_name and last_name and student_no and not (button1.cget("state") == tk.DISABLED and button2.cget("state") == tk.DISABLED):
             try:
@@ -81,15 +78,21 @@ def open_registration_form(connection):
                 # Save the player to the database using the Player class method
                 new_player.save_to_db(connection)
 
-                new_player.increment_total_spent(connection,table_type)
+                new_player.increment_total_spent(connection, table_type)
 
                 player_seat = PlayerTable(new_player.student_no, table_type)
 
-                player_seat.seat_allocation(connection,current_week_no, table_type)
+                player_seat.seat_allocation(connection, current_week_no, table_type)
 
-
+                # Show success message
                 messagebox.showinfo("Registration Successful", f"Welcome, {first_name} {last_name}!")
-                registration_window.destroy()  # Close the registration window
+
+                # Refresh the table layout if table_management is provided
+                if table_management:
+                    table_management.update_table_ui()
+
+                # Close the registration window
+                registration_window.destroy()
             except Exception as e:
                 messagebox.showerror("Database Error", f"Failed to save to the database: {e}")
                 connection.rollback()

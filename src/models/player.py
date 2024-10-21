@@ -158,3 +158,33 @@ class Player:
         except Exception as e:
             connection.rollback()  # Roll back the transaction in case of an error
             raise e  # Optionally log the error or handle it as needed
+
+    @staticmethod
+    def get_player_info(connection, student_number):
+        """Fetch player info for the specified student number and return a Player instance."""
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT firstname, lastname, studentNumber, points, totalWon, totalSpent, membershipStatus 
+                    FROM Player 
+                    WHERE studentNumber = %s
+                """, (student_number,))
+                result = cursor.fetchone()
+                if result:
+                    # Create a Player instance with the fetched data
+                    player = Player(
+                        first_name=result[0],
+                        last_name=result[1],
+                        student_no=result[2],
+                        points=result[3],
+                        total_won=result[4],
+                        total_spent=result[5],
+                        membership_status=result[6]
+                    )
+                    return player
+                else:
+                    print(f"No player found with student number: {student_number}")
+                    return None
+        except Exception as e:
+            print(f"Error fetching player info: {e}")
+            return None
