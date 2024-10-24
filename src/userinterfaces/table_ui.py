@@ -70,24 +70,26 @@ class TableManagement:
             (0.1, 0.7), (0.1, 0.3),  # Left (bottom and top)
         ]
 
-        # Create seat labels and "Additional Buy In" buttons
+        # Create seat labels and display player details along with additional buy-in buttons
         for i in range(table.seat_count):
             x_pos, y_pos = positions[i]
             seat_info = next((seat for seat in taken_seats if seat['seat'] == i + 1), None)
             seat_color = "red" if seat_info else "lightgreen"
 
-            # Create a label for the seat
-            seat_label = tk.Label(table_frame, text=f"Seat {i + 1}", bg=seat_color, width=10, height=2)
-            seat_label.place(relx=x_pos, rely=y_pos, anchor=tk.CENTER)
+            if not seat_info:
+                # Create a label for the unoccupied seat
+                seat_label = tk.Label(table_frame, text=f"Seat {i + 1}", bg=seat_color, width=10, height=2)
+                seat_label.place(relx=x_pos, rely=y_pos, anchor=tk.CENTER)
 
-            if seat_info:
+            # If the seat is occupied, display player information and "Additional Buy In" button
+            else:
                 self.display_player_info(seat_info, table, x_pos, y_pos, table_frame)
 
         # Pot and buy-in labels
-        pot_label = tk.Label(table_frame, text=f"Pot: ${table.pot:.2f}", bg="lightgreen")
+        pot_label = tk.Label(table_frame, text=f"Pot: £{table.pot:.2f}", bg="lightgreen")
         pot_label.pack(side=tk.BOTTOM, pady=5)
 
-        buy_in_label = tk.Label(table_frame, text=f"Buy-in: ${table.buy_in:.2f}", bg="lightblue")
+        buy_in_label = tk.Label(table_frame, text=f"Buy-in: £{table.buy_in:.2f}", bg="lightblue")
         buy_in_label.pack(side=tk.BOTTOM, pady=5)
 
     def display_player_info(self, seat_info, table, x_pos, y_pos, table_frame):
@@ -95,12 +97,15 @@ class TableManagement:
         player = Player.get_player_info(self.connection, seat_info['student_number'])
         if player:
             total_buy_in = seat_info['total_buy_in'] if seat_info['total_buy_in'] is not None else 0.00
-            info_text = f"Taken by: {player.first_name} {player.last_name}\nTotal Buy-In: ${total_buy_in:.2f}"
+            info_text = f"Taken by: {player.first_name} {player.last_name}\nTotal Buy-In: £{total_buy_in:.2f}"
+
+            # Create a label to show player information
             info_label = tk.Label(table_frame, text=info_text, bg="red", fg="white", wraplength=100)
             info_label.place(relx=x_pos, rely=y_pos + 0.15, anchor=tk.CENTER)
 
             # Create the "Additional Buy In" button
-            buy_in_button = tk.Button(table_frame, text="Additional Buy In", command=lambda: self.additional_buy_in_action(player, table))
+            buy_in_button = tk.Button(table_frame, text="Additional Buy In",
+                                      command=lambda: self.additional_buy_in_action(player, table))
             buy_in_button.place(relx=x_pos, rely=y_pos + 0.25, anchor=tk.CENTER)
 
     def additional_buy_in_action(self, player, table):
@@ -117,7 +122,7 @@ class TableManagement:
             # Show a success message
             messagebox.showinfo(
                 "Success",
-                f"{player.first_name} {player.last_name} rebought for ${table.buy_in:.2f} "
+                f"{player.first_name} {player.last_name} rebought for £{table.buy_in:.2f} "
                 f"at Table {table.table_number}"
             )
         except Exception as e:
