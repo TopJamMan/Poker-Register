@@ -69,7 +69,7 @@ class TableManagement:
             (0.1, 0.7), (0.1, 0.3),  # Left (bottom and top)
         ]
 
-        # Create seat labels based on the calculated positions
+        # Create seat labels and "Additional Buy In" buttons based on the calculated positions
         for i in range(table.seat_count):
             x_pos, y_pos = positions[i]
 
@@ -88,10 +88,34 @@ class TableManagement:
                 if player:
                     # Use 0.00 as default if total_buy_in is None
                     total_buy_in = seat_info['total_buy_in'] if seat_info['total_buy_in'] is not None else 0.00
-                    info_text = f"Taken by: {player.first_name} {player.last_name}\nBuy-in: ${total_buy_in:.2f}"
+                    info_text = f"Taken by: {player.first_name} {player.last_name}\n Total Buy-In: ${total_buy_in:.2f}"
                     info_label = tk.Label(table_frame, text=info_text, bg="red", fg="white", wraplength=100)
                     # Position the info label slightly lower to avoid overlap with the seat label
                     info_label.place(relx=x_pos, rely=y_pos + 0.15, anchor=tk.CENTER)
+
+                    # Create the "Additional Buy In" button
+                    def additional_buy_in_action():
+                        try:
+                            # Increment the pot using the Table class method
+                            table.increment_pot(self.connection)
+                            player.increment_total_spent(self.connection,table.buy_in)
+                            PlayerTable.increment_total_spent(self.connection, player.student_no, table.buy_in)
+
+                            # Update the UI to reflect the new pot value
+                            self.update_table_ui()
+
+                            # Show a success message
+                            tk.messagebox.showinfo(
+                                "Success",
+                                f"{player.first_name} {player.last_name} rebought for ${table.buy_in:.2f} "
+                                f"at Table {table.table_number}"
+                            )
+                        except Exception as e:
+                            tk.messagebox.showerror("Error", f"Failed to increment the pot: {e}")
+
+                    # Create the button and place it below the info label
+                    buy_in_button = tk.Button(table_frame, text="Additional Buy In", command=additional_buy_in_action)
+                    buy_in_button.place(relx=x_pos, rely=y_pos + 0.25, anchor=tk.CENTER)
 
         # Pot and buy-in labels
         pot_label = tk.Label(table_frame, text=f"Pot: ${table.pot:.2f}", bg="lightgreen")
@@ -99,4 +123,3 @@ class TableManagement:
 
         buy_in_label = tk.Label(table_frame, text=f"Buy-in: ${table.buy_in:.2f}", bg="lightblue")
         buy_in_label.pack(side=tk.BOTTOM, pady=5)
-

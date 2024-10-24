@@ -121,6 +121,24 @@ class PlayerTable:
             print(f"Error fetching taken seats: {e}")
         return taken_seats
 
+    @staticmethod
+    def increment_total_spent(connection, studentId, amount):
+        """Increment the player's total spent amount in the database."""
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE playerseat
+                    SET totalbuyin = totalbuyin + %s
+                    WHERE studentNumber = %s
+                    """,
+                    (amount, studentId)  # Pass the amount and studentId as parameters
+                )
+            connection.commit()  # Commit the transaction
+        except Exception as e:
+            connection.rollback()  # Roll back the transaction in case of an error
+            raise e
+
 
 def count_seats_allocated(connection, table_id):
     """
