@@ -42,9 +42,33 @@ class TableManagement:
         current_week_no = Week.get_current_week_number(self.connection)
         table_list_detailed = Table.get_table_details(self.connection, current_week_no)
 
-        # Create a frame for each table
-        for table in table_list_detailed:
-            self.create_table_frame(self.main_frame, table)
+        # Configure the grid layout in the main frame to allow resizing
+        self.main_frame.grid_rowconfigure(0, weight=1)  # Make the first row resizable
+        self.main_frame.grid_columnconfigure(0, weight=1)  # Make the first column resizable
+        self.main_frame.grid_columnconfigure(1, weight=1)  # Make the second column resizable
+
+        # Iterate over the table list to create table frames in two columns
+        for index, table in enumerate(table_list_detailed):
+            # Calculate row and column indices for grid layout (2 columns)
+            row = index // 2  # Every two tables go in a new row
+            column = index % 2  # 0 for first column, 1 for second column
+
+            # Create the table frame and place it in the grid
+            table_frame = tk.Frame(self.main_frame, bd=2, relief=tk.SOLID)
+            table_frame.grid(row=row, column=column, padx=10, pady=10, sticky="nsew")  # Use grid instead of pack
+
+            # Configure the current row to be resizable
+            self.main_frame.grid_rowconfigure(row, weight=1)  # Ensure the rows expand
+
+            # Create the table frame using the existing method
+            self.create_table_frame(table_frame, table)
+
+        # Ensure the main window can resize both columns and rows dynamically
+        for i in range((len(table_list_detailed) + 1) // 2):  # Configure all the created rows
+            self.main_frame.grid_rowconfigure(i, weight=1)
+
+        self.main_frame.grid_columnconfigure(0, weight=1)  # First column scales with window resize
+        self.main_frame.grid_columnconfigure(1, weight=1)  # Second column scales with window resize
 
     def create_table_frame(self, parent_frame, table):
         """Create a frame to display the table and its seats."""
@@ -101,7 +125,7 @@ class TableManagement:
 
             # Create a label to show player information
             info_label = tk.Label(table_frame, text=info_text, bg="red", fg="white", wraplength=100)
-            info_label.place(relx=x_pos, rely=y_pos + 0.15, anchor=tk.CENTER)
+            info_label.place(relx=x_pos, rely=y_pos, anchor=tk.CENTER)
 
             # Create the "Additional Buy In" button
             buy_in_button = tk.Button(table_frame, text="Additional Buy In",
