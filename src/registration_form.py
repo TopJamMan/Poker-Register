@@ -1,7 +1,7 @@
 from tkinter import messagebox
 import tkinter as tk
 from src.models.player import Player
-from src.models.playerTable import PlayerTable
+from src.models.player_seat import PlayerTable
 from src.models.week import Week
 
 

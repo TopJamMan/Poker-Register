@@ -4,7 +4,7 @@ from tkinter import messagebox
 from src.models.table import Table
 
 
-class PlayerTable:
+class PlayerSeat:
     def __init__(self, student_no,total_buy_in, table_id = None, placement=None, seat=None):
         """
         Initialize a PlayerTable object with required parameters.
@@ -87,6 +87,22 @@ class PlayerTable:
         except Exception as e:
             connection.rollback()  # Rollback in case of error
             print(f"Error saving player table: {e}")
+            raise e
+
+    def move_seat(self, connection):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO playerseat (studentnumber, tableId, seat, totalBuyIn)
+                    VALUES (%s, %s, %s, %s)
+                    """,
+                    (self.student_no, self.table_id, self.seat, self.total_buy_in)
+                )
+            connection.commit()  # Commit the transaction
+        except Exception as e:
+            connection.rollback()  # Rollback in case of error
+            print(f"Error moving player to a different seat: {e}")
             raise e
 
     @staticmethod

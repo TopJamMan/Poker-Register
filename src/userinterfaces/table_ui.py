@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 from src.models.player import Player
-from src.models.playerTable import PlayerTable
+from src.models.player_seat import PlayerTable
 from src.models.table import Table
 from src.models.week import Week
 
@@ -121,7 +121,7 @@ class TableManagement:
         player = Player.get_player_info(self.connection, seat_info['student_number'])
         if player:
             total_buy_in = seat_info['total_buy_in'] if seat_info['total_buy_in'] is not None else 0.00
-            info_text = f"Taken by: {player.first_name} {player.last_name}\nTotal Buy-In: £{total_buy_in:.2f}"
+            info_text = f"{player.first_name} {player.last_name}\nTotal Buy-In: £{total_buy_in:.2f}"
 
             # Create a label to show player information
             info_label = tk.Label(table_frame, text=info_text, bg="red", fg="white", wraplength=100)
@@ -151,3 +151,23 @@ class TableManagement:
             )
         except Exception as e:
             messagebox.showerror("Error", f"Failed to increment the pot: {e}")
+
+
+    def move_player(self, player, player_seat, old_table, new_table):
+        try:
+            old_table.move_table(self.connection, player_seat, new_table)
+
+            player_seat
+
+            # Update the UI to reflect the new pot value
+            self.update_table_ui()
+
+            # Show a success message
+            messagebox.showinfo(
+                "Success",
+                f"{player.first_name} {player.last_name} was moved to {new_table.table_number:.2f} "
+            )
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to move player to the table: {e}")
+
+

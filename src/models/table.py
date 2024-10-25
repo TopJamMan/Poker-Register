@@ -62,6 +62,32 @@ class Table:
             connection.rollback()
             raise e
 
+    def move_table(self, connection, player_seat, new_table):
+        try:
+            with connection.cursor() as cursor:
+                # Update the pot for the current table (subtract the player's total buy-in)
+                cursor.execute(
+                    """
+                    UPDATE "table"
+                    SET pot = %s
+                    WHERE tableId = %s
+                    """,
+                    (self.pot - player_seat.total_buy_in, self.table_id)
+                )
+                # Update the pot for the new table (add the player's total buy-in)
+                cursor.execute(
+                    """
+                    UPDATE "table"
+                    SET pot = %s
+                    WHERE tableId = %s
+                    """,
+                    (new_table.pot + player_seat.total_buy_in, new_table.table_id)
+                )
+            connection.commit()
+        except Exception as e:
+            connection.rollback()
+            raise e
+
     @staticmethod
     def get_table_details(connection, week_no):
         """
